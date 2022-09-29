@@ -1,5 +1,6 @@
 import pygame
 from sys import exit
+import time
 from random import randint, choice
 
 
@@ -63,6 +64,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.animation_index = 0
         self.image = self.frames[self.animation_index]
         self.rect = self.image.get_rect(midbottom=(randint(900, 1100), y_pos))
+        self.rect_x_pos = self.rect.x
 
     def animation_state(self):
         self.animation_index += 0.1
@@ -70,9 +72,10 @@ class Obstacle(pygame.sprite.Sprite):
             self.animation_index = 0
         self.image = self.frames[int(self.animation_index)]
 
-    def update(self):
+    def update(self, dt):
         self.animation_state()
-        self.rect.x -= 6
+        self.rect_x_pos -= 500 * dt
+        self.rect.x = round(self.rect_x_pos)
         self.destroy()
 
     def destroy(self):
@@ -132,9 +135,15 @@ game_message_rect = game_message.get_rect(center=(400, 330))
 # Timers
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 1500)
+previous_time = time.time()                                         # for calculating deltatime
 
 # Game runner
 while True:
+    clock.tick(60)                                                  # set the max frame rate
+
+    dt = time.time() - previous_time                                # for calculating deltatime
+    previous_time = time.time()
+
     # Event Loop - general dealing with inputs
     for event in pygame.event.get():
         if event.type == pygame.QUIT:                               # Allow game to be closed
@@ -159,7 +168,7 @@ while True:
 
         # Obstacle Movement
         obstacle_group.draw(screen)
-        obstacle_group.update()
+        obstacle_group.update(dt)
 
         # Player
         player.draw(screen)
@@ -181,4 +190,3 @@ while True:
             screen.blit(score_message, score_message_rect)
 
     pygame.display.update()                                     # Draw & update all elements
-    clock.tick(60)                                              # set the max frame rate
